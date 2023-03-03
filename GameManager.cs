@@ -50,11 +50,17 @@ public class GameManager : MonoBehaviour
     public RectTransform bossHealthBar;
     public Text curScoreText;
     public Text bestText;
+    public AudioSource stagePlaySound;
+    public AudioSource stageEndSound;
+
 
     void Awake()
     {
         enemyList = new List<int>(); // Instant이기 때문에 초기화 필요
         maxScoreTxt.text = string.Format("{0:n0}", PlayerPrefs.GetInt("MaxScore")); 
+
+        if (PlayerPrefs.HasKey("MaxScore"))
+            PlayerPrefs.SetInt("MaxScore", 0);
     }
 
     public void GameStart()
@@ -65,13 +71,21 @@ public class GameManager : MonoBehaviour
         menuPanel.SetActive(false);
         gamePanel.SetActive(true);
 
-        player.gameObject.SetActive(true);
+        
+
+        //player.gameObject.SetActive(true);        
     }
 
     public void GameOver()  // 게임오버 시, 게임 판넬은 비활성화 게임오버 판넬 활성화
     {
+        menuCam.SetActive(true);
+        gameCam.SetActive(false);
+
         gamePanel.SetActive(false);
         overPanel.SetActive(true);
+
+        Invoke("playerBye", 4f);
+
         curScoreText.text = scoreTxt.text;
 
         int maxScore = PlayerPrefs.GetInt("MaxScore");
@@ -82,6 +96,11 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    public void playerBye()
+    {
+        player.gameObject.SetActive(false);
+    }
+
     public void Restart()
     {
         SceneManager.LoadScene(0); // Scene이 하나밖에 없기 때문에 0을 넣으면 다시 초기로 돌아감.
@@ -89,6 +108,9 @@ public class GameManager : MonoBehaviour
 
     public void StageStart()
     {
+        stagePlaySound.Play();
+        stageEndSound.Stop();
+        
         itemShop.SetActive(false);
         weaponShop.SetActive(false);
         startZone.SetActive(false);
@@ -102,6 +124,9 @@ public class GameManager : MonoBehaviour
 
     public void StageEnd()
     {
+        stagePlaySound.Stop();
+        stageEndSound.Play();
+
         player.transform.position = Vector3.up * 0.8f;
 
         itemShop.SetActive(true);

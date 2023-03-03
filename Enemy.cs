@@ -18,7 +18,6 @@ public class Enemy : MonoBehaviour
     public bool isChase;
     public bool isAttack;
     public bool isDead;
-
     public Rigidbody rigid;
     public BoxCollider boxCollider;
     public MeshRenderer[] meshs;
@@ -175,7 +174,7 @@ public class Enemy : MonoBehaviour
         foreach(MeshRenderer mesh in meshs)
             mesh.material.color = Color.red;
 
-        
+        yield return new WaitForSeconds(0.1f);
 
         if(curHealth > 0)
         {
@@ -197,7 +196,7 @@ public class Enemy : MonoBehaviour
             nav.enabled = false;
             anim.SetTrigger("doDie");
             Player player = target.GetComponent<Player>();
-            player.score += score;
+            player.score += score; // 플레이어 스코어 ++
             int ranCoin = Random.Range(0, 3);
             Instantiate(coins[ranCoin], transform.position, Quaternion.identity);
 

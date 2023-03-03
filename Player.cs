@@ -22,6 +22,9 @@ public class Player : MonoBehaviour
     public int maxCoin;
     public int maxHealth;
     public int maxHasGrenades;
+    public AudioSource HammerSound;
+    public AudioSource handgunSound;
+    public AudioSource subgunSound;    
 
     float hAxis;
     float vAxis;
@@ -64,7 +67,7 @@ public class Player : MonoBehaviour
         meshs = GetComponentsInChildren<MeshRenderer>();
         
         Debug.Log(PlayerPrefs.GetInt("MaxScore"));
-        //PlayerPrefs.SetInt("MaxScore", 112500); //유니티에서 제공하는 간단한 저장 기능
+        PlayerPrefs.SetInt("MaxScore", 0);
     }
 
     void Update()
@@ -182,11 +185,27 @@ public class Player : MonoBehaviour
 
         if(fDown && isFireReady && !isDodge && !isSwap && !isShop && !isDead)
         {
+            // 스위치 문으로 웨폰 타입 별 공격 사운드 별도 적용.
+            switch(equipWeaponIndex)
+            {
+                case 0:                   
+                    HammerSound.Play();
+                    break;
+                case 1:
+                    if(equipWeapon.curAmmo > 0)
+                        handgunSound.Play();
+                    break;
+                case 2:
+                    if(equipWeapon.curAmmo > 0)
+                        subgunSound.Play();
+                    break;               
+            }          
             equipWeapon.Use();
             anim.SetTrigger(equipWeapon.type == Weapon.Type.Melee ? "doSwing" : "doShot");
-            fireDelay = 0;
+            fireDelay = 0;            
         }
     }
+
     void Reload()
     {
         if(equipWeapon == null)
@@ -203,7 +222,7 @@ public class Player : MonoBehaviour
              anim.SetTrigger("doReload");
              isReload = true;
 
-             Invoke("ReloadOut", 3f);
+             Invoke("ReloadOut", 1f);
         }          
     }
 
@@ -415,6 +434,4 @@ public class Player : MonoBehaviour
             nearObject = null;
         }
     }
-
-
 }

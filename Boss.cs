@@ -12,7 +12,6 @@ public class Boss : Enemy
     Vector3 lookVec;
     Vector3 tauntVec;
     public bool isLook;
-
     void Awake()  // Enemy 스크립스 상속 시 기존 코드x 상속 부모의 Awake 코드는 자식 스크립트만 상속받아 사용 가능
     {
         rigid = GetComponent<Rigidbody>();
@@ -58,9 +57,11 @@ public class Boss : Enemy
                 break;
             case 2:
             case 3: //돌 굴러가는 패턴
+                //StartCoroutine(MissileShot());
                 StartCoroutine(RockShot());
                 break;
             case 4: //점프 공격 패턴
+                //StartCoroutine(MissileShot());
                 StartCoroutine(Taunt());
                 break;
         }
