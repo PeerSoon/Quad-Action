@@ -56,7 +56,7 @@ public void playerBye()
 
 - BossMissile 스크립트에 Time.time 함수를 받아와서 5초 후 보스 미사일을 삭제하게 함. <2023-02-27 이슈>
 
-- <ESC>를 통한 메뉴 UI 및 기능 추가
+- <ESCape>를 통한 메뉴 UI 및 기능 추가
 
   input manager에 cancel이 지원되므로, 굳이 Escape 추가 필요 x
   esc 클릭 시, 게임종료 메뉴와 취소 메뉴 추가 ㅡ> 메뉴 클릭시 총알이 발사되는 이슈 발견
