@@ -82,6 +82,9 @@ public class Boss : Enemy
 
         yield return new WaitForSeconds(2f);
 
+        //Destroy(instantMissileA);
+        //Destroy(instantMissileB);
+
         StartCoroutine(Think()); // 패턴 후 새로운 패턴
     }
 

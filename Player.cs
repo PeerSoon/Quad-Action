@@ -37,6 +37,7 @@ public class Player : MonoBehaviour
     bool sDown1;
     bool sDown2;
     bool sDown3;
+    bool eDown;
 
     bool isJump;
     bool isDodge;
@@ -66,7 +67,7 @@ public class Player : MonoBehaviour
         rigid = GetComponent<Rigidbody>();
         meshs = GetComponentsInChildren<MeshRenderer>();
         
-        Debug.Log(PlayerPrefs.GetInt("MaxScore"));
+        //Debug.Log(PlayerPrefs.GetInt("MaxScore"));
         PlayerPrefs.SetInt("MaxScore", 0);
     }
 
@@ -97,7 +98,7 @@ public class Player : MonoBehaviour
         sDown1 = Input.GetButtonDown("Swap1");
         sDown2 = Input.GetButtonDown("Swap2");
         sDown3 = Input.GetButtonDown("Swap3");
-        
+        eDown = Input.GetButtonDown("Cancel");
     }
 
     void Move()
@@ -128,7 +129,7 @@ public class Player : MonoBehaviour
         transform.LookAt(transform.position + moveVec); // 바라보는 방향으로 회전시켜주는 함수. 즉 현재 포지션에서 moveVec으로 나아갈 방향으로 바라 봄.
 
         //#2. 마우스에 의한 회전
-        if(fDown && !isDead){
+        if(fDown && !isDead && !manager.escPanelOpen){
         Ray ray = followCamera.ScreenPointToRay(Input.mousePosition);
         RaycastHit rayHit;
         if(Physics.Raycast(ray, out rayHit, 100))
@@ -181,9 +182,9 @@ public class Player : MonoBehaviour
         if(equipWeapon == null)
             return;
         fireDelay += Time.deltaTime;
-        isFireReady = equipWeapon.rate < fireDelay;
+        isFireReady = equipWeapon.rate < fireDelay; // bool값 적용.
 
-        if(fDown && isFireReady && !isDodge && !isSwap && !isShop && !isDead)
+        if(fDown && isFireReady && !isDodge && !isSwap && !isShop && !isDead && !manager.escPanelOpen)
         {
             // 스위치 문으로 웨폰 타입 별 공격 사운드 별도 적용.
             switch(equipWeaponIndex)

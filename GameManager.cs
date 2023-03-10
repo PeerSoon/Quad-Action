@@ -29,6 +29,8 @@ public class GameManager : MonoBehaviour
     public GameObject menuPanel;
     public GameObject gamePanel;
     public GameObject overPanel;
+    public GameObject escPanel;
+    public bool escPanelOpen = false;
     public Text maxScoreTxt;
     public Text scoreTxt;
     public Text stageTxt;
@@ -70,6 +72,7 @@ public class GameManager : MonoBehaviour
 
         menuPanel.SetActive(false);
         gamePanel.SetActive(true);
+        escPanel.SetActive(false);
 
         
 
@@ -201,6 +204,8 @@ public class GameManager : MonoBehaviour
         {
             playTime += Time.deltaTime;
         }
+
+        EscOpen();
     }
     void LateUpdate() // Update()가 끝난 후 호출되는 생명주기, 즉 Update에서 처리된 정보를 받아와서 처리
     {
@@ -251,5 +256,31 @@ public class GameManager : MonoBehaviour
         {
             bossHealthGroup.anchoredPosition = Vector3.up * 200;
         }    
+    }
+    public void QuitGame()
+    {
+        Debug.Log("게임 종료");
+        Application.Quit();
+    }
+
+    public void EscOpen()
+    {
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            escPanel.SetActive(true); // Esc 키를 누르면 UI 창을 활성화
+            menuPanel.SetActive(false);
+            gamePanel.SetActive(false);
+            overPanel.SetActive(false);
+            escPanelOpen = true;
+            Time.timeScale = 0f; // 게임 시간을 멈춤
+        }
+    }
+
+    public void EscClose()
+    {
+        escPanel.SetActive(false); // Esc 키를 누르면 UI 창을 활성화
+        gamePanel.SetActive(true);
+        escPanelOpen = false;
+        Time.timeScale = 1f; // 게임 시간을 다시 시작
     }
 }
