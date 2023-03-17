@@ -8,10 +8,11 @@ public class Boss : Enemy
     public GameObject missile;
     public Transform missilePortA;
     public Transform missilePortB;
-
+    
     Vector3 lookVec;
     Vector3 tauntVec;
     public bool isLook;
+
     void Awake()  // Enemy 스크립스 상속 시 기존 코드x 상속 부모의 Awake 코드는 자식 스크립트만 상속받아 사용 가능
     {
         rigid = GetComponent<Rigidbody>();
@@ -21,7 +22,7 @@ public class Boss : Enemy
         anim = GetComponentInChildren<Animator>();
 
         nav.isStopped = true;
-        StartCoroutine(Think()); // 프레임 시작 시 Think 코루틴 실행   
+        StartCoroutine(Think()); // 프레임 시작 시 Think 코루틴 실행               
     }
 
     
@@ -41,7 +42,7 @@ public class Boss : Enemy
             transform.LookAt(target.position + lookVec);
         }
         else
-            nav.SetDestination(tauntVec);
+            nav.SetDestination(tauntVec);     
     }
 
     IEnumerator Think()
@@ -122,5 +123,5 @@ public class Boss : Enemy
         boxCollider.enabled = true;
 
         StartCoroutine(Think()); // 패턴 후 새로운 패턴
-    }
+    }  
 }

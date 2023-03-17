@@ -22,6 +22,9 @@ public class Player : MonoBehaviour
     public int maxCoin;
     public int maxHealth;
     public int maxHasGrenades;
+    public AudioSource MoveSound;
+    //public AudioSource JumpSound;
+    //public AudioSource DodgeSound;
     public AudioSource HammerSound;
     public AudioSource handgunSound;
     public AudioSource subgunSound;    
@@ -111,16 +114,17 @@ public class Player : MonoBehaviour
         if(isSwap || isReload || !isFireReady || isDead)
             {moveVec = Vector3.zero;}
 
-        /*if(wDown)
-            transform.position += moveVec * speed * 0.3f * Time.deltaTime;
-        else
-            transform.position += moveVec * speed * Time.deltaTime; */
-
         if(!isBorder)
             transform.position += moveVec * speed * (wDown ? 0.3f : 1) * Time.deltaTime; //!3항 연산자 사용법
 
+            if (moveVec == Vector3.zero || isDodge || isJump)  
+            {
+                MoveSound.Stop();
+            }
+    
         anim.SetBool("isRun", moveVec != Vector3.zero);
         anim.SetBool("isWalk", wDown);
+     
     }
 
     void Turn()
@@ -149,6 +153,8 @@ public class Player : MonoBehaviour
             anim.SetBool("isJump", true);
             anim.SetTrigger("doJump");
             isJump = true;
+
+            //JumpSound.Play();
         }
     }
 
@@ -229,9 +235,16 @@ public class Player : MonoBehaviour
 
     void ReloadOut()
     {
-        int reAmmo = ammo < equipWeapon.maxAmmo ? ammo : equipWeapon.maxAmmo;
-        equipWeapon.curAmmo = reAmmo;
-        ammo -= reAmmo;
+        // 현재 탄창에 빈 공간이 있는지 확인.
+        int emptySpaceInCurAmmo = equipWeapon.maxAmmo - equipWeapon.curAmmo;
+
+        // maxAmmo에서 충분한 탄약이 있는지 확인하고, 필요한 만큼만 가져온다. 더 작은값 반환
+        int ammoToReload = Mathf.Min(emptySpaceInCurAmmo, ammo);
+
+        // 탄창을 채우고 남은 탄약을 ammo에서 차감합니다.
+        equipWeapon.curAmmo += ammoToReload;
+        ammo -= ammoToReload;
+
         isReload = false;
     }
 
@@ -243,7 +256,7 @@ public class Player : MonoBehaviour
             speed *= 2;
             anim.SetTrigger("doDodge");
             isDodge = true;
-
+            //DodgeSound.Play();
             Invoke("DodgeOut", 0.6f);
         }
     }

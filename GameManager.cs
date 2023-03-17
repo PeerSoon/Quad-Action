@@ -54,15 +54,14 @@ public class GameManager : MonoBehaviour
     public Text bestText;
     public AudioSource stagePlaySound;
     public AudioSource stageEndSound;
-
-
+    private int numAppearances = 0;
     void Awake()
     {
         enemyList = new List<int>(); // Instant이기 때문에 초기화 필요
         maxScoreTxt.text = string.Format("{0:n0}", PlayerPrefs.GetInt("MaxScore")); 
 
         if (PlayerPrefs.HasKey("MaxScore"))
-            PlayerPrefs.SetInt("MaxScore", 0);
+            PlayerPrefs.SetInt("MaxScore", 0); 
     }
 
     public void GameStart()
@@ -146,14 +145,16 @@ public class GameManager : MonoBehaviour
     IEnumerator InBattle()
     {
         if (stage % 5 == 0)
-        {
+        {              
             enemyCntD++;
             GameObject instantEnemy = Instantiate(enemies[3], enemyZones[0].position, enemyZones[0].rotation);
             Enemy enemy = instantEnemy.GetComponent<Enemy>(); //프리팹은 인게임 내 속성에 접근 x 고로 다시 타겟을 초기화 해주어야 함.
             enemy.target = player.transform;
-            enemy.manager = this;
+            enemy.manager = this;           
             boss = instantEnemy.GetComponent<Boss>();
+            BossHealthIncrese(); // 체력 증가 함수 호출                    
         }
+
         else
         {
             for(int index=0; index < stage; index++)
@@ -196,7 +197,6 @@ public class GameManager : MonoBehaviour
 
         boss = null;
         StageEnd();
-        
     }
     void Update()
     {
@@ -250,7 +250,8 @@ public class GameManager : MonoBehaviour
         if(boss != null)
         {
             bossHealthGroup.anchoredPosition = Vector3.down * 30;
-            bossHealthBar.localScale = new Vector3((float)boss.curHealth / boss.maxHealth, 1, 1); //보스 체력 이미지의 Scale을 남은 체력 비율에 따라 변경, 앵커를 왼쪽으로 맞추어 놓아서 오른쪽에서 사라짐
+            float healthPercentage = Mathf.Clamp((float)boss.curHealth / boss.maxHealth, 0, 1);
+            bossHealthBar.localScale = new Vector3(healthPercentage, 1, 1); //보스 체력 이미지의 Scale을 남은 체력 비율에 따라 변경, 앵커를 왼쪽으로 맞추어 놓아서 오른쪽에서 사라짐
         }
         else
         {
@@ -283,4 +284,15 @@ public class GameManager : MonoBehaviour
         escPanelOpen = false;
         Time.timeScale = 1f; // 게임 시간을 다시 시작
     }
+
+    void BossHealthIncrese()
+    {   
+        numAppearances++;
+
+        if (numAppearances > 1) 
+            {
+                boss.maxHealth = Mathf.RoundToInt(boss.maxHealth * 1.1f); // 체력 10% 증가
+                boss.curHealth = boss.maxHealth; // 보스 현재 체력을 maxHealth로 설정
+            }
+    }                
 }

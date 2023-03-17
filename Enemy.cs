@@ -7,8 +7,8 @@ public class Enemy : MonoBehaviour
 {
     public enum Type {A, B, C, D};
     public Type enemyType;
-    public int maxHealth;
-    public int curHealth;
+    public float maxHealth;
+    public float curHealth;
     public int score;
     public GameManager manager;
     public Transform target;
@@ -34,6 +34,8 @@ public class Enemy : MonoBehaviour
 
         if(enemyType != Type.D)
             Invoke("ChaseStart", 2);
+
+        
     }
 
     void ChaseStart()
@@ -47,7 +49,7 @@ public class Enemy : MonoBehaviour
         {
             nav.SetDestination(target.position);
             nav.isStopped = !isChase;
-         }
+        }      
     }
 
     void FreezeVelocity()
@@ -187,6 +189,7 @@ public class Enemy : MonoBehaviour
         }
         else 
         {
+            curHealth = 0;
             foreach(MeshRenderer mesh in meshs)
                 mesh.material.color = Color.gray;
 
@@ -231,5 +234,5 @@ public class Enemy : MonoBehaviour
 
                 Destroy(gameObject, 4);
         }
-    }
+    }    
 }
