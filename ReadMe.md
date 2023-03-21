@@ -1,4 +1,4 @@
-Quarter View FPS Game
+Quarter View FPS Game - Release Note
 
 '골드메탈'님의 강의를 듣고 개발한 게임을 Customizing 및 버그 개선을 하는 레포지토리입니다.
 
