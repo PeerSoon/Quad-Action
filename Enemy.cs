@@ -234,5 +234,14 @@ public class Enemy : MonoBehaviour
 
                 Destroy(gameObject, 4);
         }
+    }
+    private IEnumerator OnCollisionEnter(Collision collision)
+    {
+        if (collision.gameObject.CompareTag("Player"))
+        {
+            GetComponent<Rigidbody>().isKinematic = true;
+            yield return new WaitForSeconds(0.5f);
+            GetComponent<Rigidbody>().isKinematic = false;
+        }
     }    
 }

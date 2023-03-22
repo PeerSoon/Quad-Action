@@ -64,6 +64,9 @@ public class Player : MonoBehaviour
     public Weapon equipWeapon;
     int equipWeaponIndex = -1;
     float fireDelay;
+    public enum PlayerState {Idle, Attacked}
+    public PlayerState currentState = PlayerState.Idle;
+
     void Awake()
     {
         anim = GetComponentInChildren<Animator>();
@@ -77,7 +80,7 @@ public class Player : MonoBehaviour
     void Update()
     {
        GetInput();
-       Move();
+       //Move();
        Turn();
        Jump();
        Grenade();
@@ -106,6 +109,7 @@ public class Player : MonoBehaviour
 
     void Move()
     {
+        if (currentState == PlayerState.Attacked) return;
         moveVec = new Vector3(hAxis, 0, vAxis).normalized; // 대각선 방향으로 갈 때, 루트 2의 값으로 더 빠르므로, normalized 함수를 통하여 정규화 시킴(1)
 
         if(isDodge)
@@ -115,12 +119,13 @@ public class Player : MonoBehaviour
             {moveVec = Vector3.zero;}
 
         if(!isBorder)
-            transform.position += moveVec * speed * (wDown ? 0.3f : 1) * Time.deltaTime; //!3항 연산자 사용법
+            rigid.MovePosition(rigid.position + moveVec * (speed * (wDown ? 0.3f : 1)) * Time.fixedDeltaTime);
+            //transform.position += moveVec * speed * (wDown ? 0.3f : 1) * Time.deltaTime; //!3항 연산자 사용법
 
-            if (moveVec == Vector3.zero || isDodge || isJump)  
-            {
-                MoveSound.Stop();
-            }
+        if (moveVec == Vector3.zero || isDodge || isJump)  
+        {
+            MoveSound.Stop();
+        }
     
         anim.SetBool("isRun", moveVec != Vector3.zero);
         anim.SetBool("isWalk", wDown);
@@ -177,6 +182,7 @@ public class Player : MonoBehaviour
                 rigidGrenade.AddForce(nextVec, ForceMode.Impulse);
                 rigidGrenade.AddTorque(Vector3.back * 10, ForceMode.Impulse);
 
+                anim.SetTrigger("doThrow");
                 hasGrenades--;
                 grenades[hasGrenades].SetActive(false);
             }
@@ -190,7 +196,7 @@ public class Player : MonoBehaviour
         fireDelay += Time.deltaTime;
         isFireReady = equipWeapon.rate < fireDelay; // bool값 적용.
 
-        if(fDown && isFireReady && !isDodge && !isSwap && !isShop && !isDead && !manager.escPanelOpen)
+        if(fDown && isFireReady && !isDodge && !isSwap && !isShop && !isDead && !isJump && !manager.escPanelOpen)
         {
             // 스위치 문으로 웨폰 타입 별 공격 사운드 별도 적용.
             switch(equipWeaponIndex)
@@ -241,7 +247,7 @@ public class Player : MonoBehaviour
         // maxAmmo에서 충분한 탄약이 있는지 확인하고, 필요한 만큼만 가져온다. 더 작은값 반환
         int ammoToReload = Mathf.Min(emptySpaceInCurAmmo, ammo);
 
-        // 탄창을 채우고 남은 탄약을 ammo에서 차감합니다.
+        // 탄창을 채우고 남은 탄약을 ammo에서 차감.
         equipWeapon.curAmmo += ammoToReload;
         ammo -= ammoToReload;
 
@@ -330,12 +336,13 @@ public class Player : MonoBehaviour
     void StopToWall()
     {
         Debug.DrawRay(transform.position, transform.forward * 5, Color.green);
-        isBorder = Physics.Raycast(transform.position, transform.forward, 5, LayerMask.GetMask("Wall"));
+        isBorder = Physics.Raycast(transform.position, transform.forward, 5, LayerMask.GetMask("Wall", "Statue"));
     }
     void FixedUpdate() 
     {
         FreezeRotation();
         StopToWall();
+        Move();
     }
 
     void OnCollisionEnter(Collision collision) 
@@ -345,6 +352,16 @@ public class Player : MonoBehaviour
             anim.SetBool("isJump", false);
             isJump = false;
         }
+        if (collision.gameObject.CompareTag("Enemy"))
+        {
+            // 몬스터와 충돌 시 공격을 받은 것으로 판단하고 처리
+            StartCoroutine(PreventSliding());
+            OnAttacked();
+        }
+        /*if (collision.gameObject.CompareTag("Statue"))
+        {           
+            StartCoroutine(PreventSliding());  
+        }*/
     }
     void OnTriggerEnter(Collider other) 
     {
@@ -447,5 +464,28 @@ public class Player : MonoBehaviour
             isShop = false;
             nearObject = null;
         }
+    }
+
+    void OnAttacked()
+    {
+        currentState = PlayerState.Attacked;
+        // 움직임 멈추기 (예: 리지드바디의 속도를 0으로 설정)
+        moveVec = Vector3.zero;
+
+         //회복 코루틴 실행 (예: 1초 후에 회복)
+        StartCoroutine(RecoverFromAttack(0.3f));
+    }
+
+    IEnumerator RecoverFromAttack(float recoveryTime)
+    {
+        yield return new WaitForSeconds(recoveryTime);
+        currentState = PlayerState.Idle;
+    }
+
+    private IEnumerator PreventSliding()    // 몬스터에게 닿으면 rigidbody 비활성화
+    {
+        GetComponent<Rigidbody>().isKinematic = true;
+        yield return new WaitForSeconds(0.5f);
+        GetComponent<Rigidbody>().isKinematic = false;
     }
 }
