@@ -263,8 +263,8 @@ public void playerBye()
 	  Enemy Script의 Attack() 코루틴 동작에 null Check 추가 후 이슈 해결
 	  
 	-1 새로운 맵의 조형물(계단을 포함한)의 경우, Nav AI BAKE 오류
-	-2 계단 올라가기 불가능.
-	-3 조형물의 위로 올라가서 총 발사 시, Y축 ray 오류로 맞지 않음. 
+	-2 조형물의 위로 올라가서 총 발사 시, Y축 ray 오류로 맞지 않음. 
+	-4 보스한테 몸통 박치기하면 튕겨나감;;
 	  
 	  
 	
@@ -291,11 +291,72 @@ public void playerBye()
 
 	- 22일 이슈 해결 과정
 		
-	 1.	(해결) Unity's NavMesh Components GitHub repository에서 NavMesh Components를 다운로드
+	 1.	(해결): Unity's NavMesh Components GitHub repository에서 NavMesh Components를 다운로드
 			  복잡한 구조물에 새로운 컴포넌트 추가: NavMeshSurface, NavMeshLink
 	
 	 2. (진행중)
 	 
-	 3. (진행중)
+	 3. (해결):  각 패턴 로직 시작 전 로직 추가 rigid.velocity = Vector3.zero;
+										rigid.angularVelocity = Vector3.zero; 
 		
+2023-03-24 업데이트	
+
+	- 업데이트 예정 목록: 미니맵 추가
 		
+		 
+	
+	- 이슈
+	
+	2. (플레이어 해결, 몬스터 미해결):   Player 스크립트에 IsClimbingStairs() 함수 적용.
+								  2개의 레이캐스트를 쏘아 (발, 몸통) Stairs 태그를 확인하여 설정한 경사도(25)가 모두 맞으면 계단으로 판단함
+								  Move() 함수 내부에 계단일 경우 y축 값을 조정하여 계단을 오르게 설정함.
+								  
+								  https://mrbinggrae.tistory.com/120 Nav Agent를 사용하는 몬스터 계단 오르기 참고
+
+2023-03-27 업데이트
+
+	- 미니맵 추가
+		
+		Minamap 카메라 추가 후 Projection: orthographic, TargetTexture: Render Texture
+						    Canvas Raw Image: RenderTexture, Mnimap 스크립트 적용
+							Game Camera: Game Camera (transform)
+							Camera: minimapCamera
+							
+							Main카메라의 Vector3값중 x와 z의 값만 받아와서 Update로 갱신
+							
+	- 이슈
+	
+	1. 고도차에 따른 타격 이벤트: 진행중
+
+	3. (new)구조물위에서 점프 시 바닥을 인지하지 못하고 계속 떠있음: jump 애니메이션이 안끝남 ㅡ> 코드 수정 후 해결
+	
+2023-03-29 업데이트
+
+	3. 해결
+	
+2023-03-30 업데이트
+
+	1. 
+	
+	- 이슈발견: 적 처치 시, 카운트 값이 음수값을 가질 때가 있음.
+		
+			  원인 추정: 같은 타입의 에너미가 동시에 여러 개가 존재하고, 
+					  그 중 하나가 사망할 때 아직 해당 에너미 객체가 파괴되기 이전에 다른 에너미 객체가 이미 enemyCnt를 감소시켰을 경우.
+					  
+			  해결 방안: 
+						1. 카운트 음수 불가능 로직 (근본)
+						
+						2. 함수 호출부분에 lock을 걸어서 다른 스레드에서 해당 함수를 호출하지 못하도록 막음 (단편)
+						
+						  - Mathf.Max(manager.enemyCntD, 0); 를 통해 음수 제어함.
+	
+2023-03-31 공지
+
+	당분간 새로운 게임 개발을 위하여 업데이트 보류
+	
+	밸런스 패치는 알파테스트를 통하여 정보가 들어오면 할 예정
+
+	
+		
+	
+	
