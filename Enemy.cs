@@ -32,10 +32,13 @@ public class Enemy : MonoBehaviour
         nav = GetComponent<NavMeshAgent>();
         anim = GetComponentInChildren<Animator>();
 
+        if (target == null)
+        {
+            target = GameObject.FindGameObjectWithTag("Player").transform;
+        }
+        
         if(enemyType != Type.D)
             Invoke("ChaseStart", 2);
-
-        
     }
 
     void ChaseStart()
@@ -49,7 +52,7 @@ public class Enemy : MonoBehaviour
         {
             nav.SetDestination(target.position);
             nav.isStopped = !isChase;
-        }      
+        }
     }
 
     void FreezeVelocity()
@@ -97,45 +100,86 @@ public class Enemy : MonoBehaviour
     {
         isChase = false;
         isAttack = true;
-        anim.SetBool("isAttack", true);
-        
+
+        if (anim != null)
+        {
+            anim.SetBool("isAttack", true);
+        };
+
         switch (enemyType) 
         {
             case Type.A:
                 yield return new WaitForSeconds(0.2f);
-                meleeArea.enabled = true;
+
+                if(meleeArea !=null)
+                {
+                    meleeArea.enabled = true;
+                }
 
                 yield return new WaitForSeconds(1f);
-                meleeArea.enabled = false;
+
+                if(meleeArea !=null)
+                {
+                    meleeArea.enabled = false;
+                }
 
                 yield return new WaitForSeconds(1f);
                 break;
+
             case Type.B:
                 yield return new WaitForSeconds(0.1f);
-                rigid.AddForce(transform.forward * 20, ForceMode.Impulse);
-                meleeArea.enabled = true;
+
+                if(rigid != null)
+                {
+                    rigid.AddForce(transform.forward * 20, ForceMode.Impulse);
+                }
+
+                if(meleeArea != null)
+                {
+                    meleeArea.enabled = true;
+                }
 
                 yield return new WaitForSeconds(0.5f);
-                rigid.velocity = Vector3.zero;
-                meleeArea.enabled = false;
+
+                if(rigid != null)
+                {
+                    rigid.velocity = Vector3.zero;
+                }
+
+                if (meleeArea != null)
+                {
+                    meleeArea.enabled = false;
+                }
 
                 yield return new WaitForSeconds(2f);
                 break;
+
             case Type.C:
                 yield return new WaitForSeconds(0.5f);
+
                 GameObject instantBullet = Instantiate(bullet, transform.position, transform.rotation);
-                Rigidbody rigidBullet = instantBullet.GetComponent<Rigidbody>();
-                rigidBullet.velocity = transform.forward * 20;
+
+                if(instantBullet != null)
+                {
+                    Rigidbody rigidBullet = instantBullet.GetComponent<Rigidbody>();
+
+                    if (rigidBullet != null)
+                    {
+                        rigidBullet.velocity = transform.forward * 20;
+                    }
+                }
 
                 yield return new WaitForSeconds(2f);
                 break;
         }
 
-
-
         isChase = true;
         isAttack = false;
-        anim.SetBool("isAttack", false);
+
+        if(anim != null)
+        {
+            anim.SetBool("isAttack", false);
+        }
     }
 
     void FixedUpdate() 
@@ -207,15 +251,19 @@ public class Enemy : MonoBehaviour
             {
                 case Type.A:
                     manager.enemyCntA--;
+                    manager.enemyCntA = Mathf.Max(manager.enemyCntA, 0);
                     break;
                 case Type.B:
                     manager.enemyCntB--;
+                    manager.enemyCntB = Mathf.Max(manager.enemyCntB, 0);
                     break;
                 case Type.C:
                     manager.enemyCntC--;
+                    manager.enemyCntC = Mathf.Max(manager.enemyCntC, 0);
                     break;
                 case Type.D:
                     manager.enemyCntD--;
+                    manager.enemyCntD = Mathf.Max(manager.enemyCntD, 0);
                     break;
             }
 
@@ -233,15 +281,6 @@ public class Enemy : MonoBehaviour
                 rigid.AddForce(reactVec * 5, ForceMode.Impulse);
 
                 Destroy(gameObject, 4);
-        }
-    }
-    private IEnumerator OnCollisionEnter(Collision collision)
-    {
-        if (collision.gameObject.CompareTag("Player"))
-        {
-            GetComponent<Rigidbody>().isKinematic = true;
-            yield return new WaitForSeconds(0.5f);
-            GetComponent<Rigidbody>().isKinematic = false;
         }
     }    
 }

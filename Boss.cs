@@ -46,7 +46,10 @@ public class Boss : Enemy
     }
 
     IEnumerator Think()
-    {
+    { 
+        rigid.velocity = Vector3.zero;
+        rigid.angularVelocity = Vector3.zero;
+
         yield return new WaitForSeconds(0.1f); // 첫 보스 움직임 난이도 조절용
 
         int ranAction = Random.Range(0, 5);
@@ -58,11 +61,9 @@ public class Boss : Enemy
                 break;
             case 2:
             case 3: //돌 굴러가는 패턴
-                //StartCoroutine(MissileShot());
                 StartCoroutine(RockShot());
                 break;
             case 4: //점프 공격 패턴
-                //StartCoroutine(MissileShot());
                 StartCoroutine(Taunt());
                 break;
         }

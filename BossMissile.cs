@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 
-public class BossMissile : Bullet
+public class BossMissile : BossBullet
 {
 
     public Transform target;

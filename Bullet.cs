@@ -10,7 +10,7 @@ public class Bullet : MonoBehaviour
 
     void OnCollisionEnter(Collision collision) 
     {
-        if(!isRock && collision.gameObject.tag == "Floor")
+        if(!isRock && !isMelee && (collision.gameObject.tag == "Floor" || collision.gameObject.tag == "Statue" || collision.gameObject.tag == "Stairs"))
         {
             Destroy(gameObject, 3);
         }
@@ -18,7 +18,7 @@ public class Bullet : MonoBehaviour
 
     void OnTriggerEnter(Collider other) 
     {
-        if(!isMelee && other.gameObject.tag == "Wall" || other.gameObject.tag == "Statue")
+        if(!isMelee && (other.gameObject.tag == "Wall" || other.gameObject.tag == "Statue" || other.gameObject.tag == "Stairs"))
         {
             Destroy(gameObject);
         }

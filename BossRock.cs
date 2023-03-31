@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class BossRock : Bullet
+public class BossRock : BossBullet
 {   
     Rigidbody rigid;
     float angularPower = 2;
@@ -26,7 +26,7 @@ public class BossRock : Bullet
     {
         while(!isShoot)
         {
-            angularPower += 0.02f;
+            angularPower += 0.08f;
             scaleValue += 0.005f;
             transform.localScale = Vector3.one * scaleValue;
             rigid.AddTorque(transform.right * angularPower, ForceMode.Acceleration);

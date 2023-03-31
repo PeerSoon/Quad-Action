@@ -55,6 +55,10 @@ public class GameManager : MonoBehaviour
     public AudioSource stagePlaySound;
     public AudioSource stageEndSound;
     private int numAppearances = 0;
+    public MapManager mapManager;
+    public bool stage11MapSwitched = false;
+    public Vector3 playerStartPositionBeforeStage11;
+    public Vector3 playerStartPositionAfterStage11;
     void Awake()
     {
         enemyList = new List<int>(); // Instant이기 때문에 초기화 필요
@@ -129,8 +133,6 @@ public class GameManager : MonoBehaviour
         stagePlaySound.Stop();
         stageEndSound.Play();
 
-        player.transform.position = Vector3.up * 0.8f;
-
         itemShop.SetActive(true);
         weaponShop.SetActive(true);
         startZone.SetActive(true);
@@ -140,6 +142,17 @@ public class GameManager : MonoBehaviour
 
         isBattle = false;
         stage++;
+
+        if (stage <= 10)
+        {
+            player.transform.position = playerStartPositionBeforeStage11;
+        }
+        else
+        {
+            player.transform.position = playerStartPositionAfterStage11;
+        }
+
+        mapManager.StartNewRound();
     }
 
     IEnumerator InBattle()

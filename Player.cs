@@ -119,17 +119,41 @@ public class Player : MonoBehaviour
             {moveVec = Vector3.zero;}
 
         if(!isBorder)
-            rigid.MovePosition(rigid.position + moveVec * (speed * (wDown ? 0.3f : 1)) * Time.fixedDeltaTime);
+        {
+            float currentSpeed = speed * (wDown ? 0.6f : 1);
+            Vector3 targetVelocity = moveVec * currentSpeed;
+            
+            rigid.velocity = Vector3.Lerp(rigid.velocity, new Vector3(targetVelocity.x, rigid.velocity.y, targetVelocity.z), Time.fixedDeltaTime * 10f); 
+            //시작 벡터, 목표벡터, 보간 값
+        }
+            //rigid.MovePosition(rigid.position + moveVec * (speed * (wDown ? 0.3f : 1)) * Time.fixedDeltaTime);
             //transform.position += moveVec * speed * (wDown ? 0.3f : 1) * Time.deltaTime; //!3항 연산자 사용법
 
-        if (moveVec == Vector3.zero || isDodge || isJump)  
+        if (moveVec == Vector3.zero || isDodge || isJump || wDown)  
         {
             MoveSound.Stop();
         }
-    
+
+        /*if (!wDown && moveVec != Vector3.zero)
+        {
+            anim.ResetTrigger("isWalk");
+            anim.ResetTrigger("idle");
+            anim.SetTrigger("isRun");
+        }
+        else if (moveVec != Vector3.zero)
+        {
+            anim.ResetTrigger("isRun");
+            anim.ResetTrigger("idle");
+            anim.SetTrigger("isWalk");
+        }
+        else if (moveVec == Vector3.zero)
+        {
+            anim.ResetTrigger("isRun");
+            anim.ResetTrigger("isWalk");
+            anim.SetTrigger("idle");
+        } */
         anim.SetBool("isRun", moveVec != Vector3.zero);
         anim.SetBool("isWalk", wDown);
-     
     }
 
     void Turn()
@@ -162,7 +186,6 @@ public class Player : MonoBehaviour
             //JumpSound.Play();
         }
     }
-
     void Grenade()
     {
         if(hasGrenades == 0)
@@ -335,7 +358,7 @@ public class Player : MonoBehaviour
     }
     void StopToWall()
     {
-        Debug.DrawRay(transform.position, transform.forward * 5, Color.green);
+        //Debug.DrawRay(transform.position, transform.forward * 5, Color.green);
         isBorder = Physics.Raycast(transform.position, transform.forward, 5, LayerMask.GetMask("Wall", "Statue"));
     }
     void FixedUpdate() 
@@ -347,7 +370,7 @@ public class Player : MonoBehaviour
 
     void OnCollisionEnter(Collision collision) 
     {
-        if(collision.gameObject.tag == "Floor")
+        if(collision.gameObject.tag == "Floor" || collision.gameObject.tag == "Stairs")
         {
             anim.SetBool("isJump", false);
             isJump = false;
@@ -455,14 +478,22 @@ public class Player : MonoBehaviour
 
     void OnTriggerExit(Collider other) 
     {
-        if(other.tag == "Weapon")
-            nearObject = null;
-        else if(other.tag == "Shop")
+        if (other.CompareTag("Weapon"))
         {
-            Shop shop = nearObject.GetComponent<Shop>();
-            shop.Exit();
-            isShop = false;
             nearObject = null;
+        }
+        else if (other.CompareTag("Shop"))
+        {
+            if (nearObject != null)
+            {
+                Shop shop = nearObject.GetComponent<Shop>();
+                if (shop != null)
+                {
+                    shop.Exit();
+                }
+                isShop = false;
+                nearObject = null;
+            }
         }
     }
 
@@ -485,7 +516,9 @@ public class Player : MonoBehaviour
     private IEnumerator PreventSliding()    // 몬스터에게 닿으면 rigidbody 비활성화
     {
         GetComponent<Rigidbody>().isKinematic = true;
-        yield return new WaitForSeconds(0.5f);
+        
+        yield return new WaitForSeconds(0.2f);
+
         GetComponent<Rigidbody>().isKinematic = false;
     }
 }
