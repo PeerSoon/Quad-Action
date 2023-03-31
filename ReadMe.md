@@ -1,4 +1,4 @@
-Quarter View FPS Game - Release Note
+Quarter View FPS Game
 
 '골드메탈'님의 강의를 듣고 개발한 게임을 Customizing 및 버그 개선을 하는 레포지토리입니다.
 
@@ -122,7 +122,7 @@ public void playerBye()
 			
 - 장애발견: 몬스터와 충돌 시 미끄러짐 현상 발생
 			-------------------------------------
-			Meterial 생성 후 Dynamic Friction, Static Friction 0으로 설정 후 적용
+			Meterial 생성 후 Dynamic Friction, Static Friction 1으로 설정 후 적용 ㅡㅡ> 
 			ㅡ> 효과없음.
 			-------------------------------------------
 					/*void OnAttacked()
@@ -173,7 +173,7 @@ public void playerBye()
 				GetComponent<Rigidbody>().isKinematic = false;
 			}
 			
-			ㅡ> rigidbody의 물리연산을 잠시 해제함으로 이슈 해결.
+			ㅡ> rigidbody의 물리연산을 잠시 해제함으로 이슈 해결 +  Friction Combin 값 조정 시 해결
 			
 2023-03-21 업데이트
 
@@ -183,12 +183,12 @@ public void playerBye()
 	
  - 이슈
  
-	1. *진행중 (물리연산 업데이트 보다 프레임당 진행 속도가 빠른것이 원인이라 추정중)
+	1. *이슈해결 (물리연산 업데이트 보다 프레임당 진행 속도가 빠른것이 원인이라 추정중)
  
-	Player가 조형물에 막혀도 계속하여 돌진하면 뚫리는 버그
+	-Player가 조형물에 막혀도 계속하여 돌진하면 뚫리는 버그
 	
 	조형물은 계단을 포함하고 있는 복잡한 구조로, Mesh Collider를 사용중. (Convex X)
-	Physic Material 생성 후 Friction 올려준 후에 플레이어, 조형물에 적용해도 x
+	Physic Material 생성 후 Friction 올려준 후에 플레이어, 조형물에 적용해도 x 
 	
 	void StopToWall()
     {
@@ -216,12 +216,19 @@ public void playerBye()
 	Edit -> Project Settings -> Time을 0.02 ㅡ> 0.002 변경
 	해결안됨.
 	
+	float currentSpeed = speed * (wDown ? 0.3f : 1);
+    Vector3 targetVelocity = moveVec * currentSpeed;
+            
+    rigid.velocity = Vector3.Lerp(rigid.velocity, new Vector3(targetVelocity.x, rigid.velocity.y, targetVelocity.z), Time.fixedDeltaTime * 10f); 
+	
+	** velocity 값으로 플레이어 움직임 제어 후 이슈 해결 - 2023-03-22
+	
 	
 	
 	
 	2. *이슈해결
 	
-	다운로드한 모델과 현재 버전과의 차이때문에 제대로 렌더링이 되지 않음.
+	-다운로드한 모델과 현재 버전과의 차이때문에 제대로 렌더링이 되지 않음.
 	
 	렌더링 지식이 아직 부족하여 여러가지 시도중 ex) Material Shader 변경, Rendering Mode 변경 등
 	
@@ -243,3 +250,113 @@ public void playerBye()
 					투명도에 따른 블렌딩을 사용하여 물체 간의 투명 효과를 처리
 					유리, 물, 입자 효과 등 투명 또는 반투명 물체에 적합
 					성능이 상대적으로 낮으며, 정렬 문제에 매우 민감함
+					
+2023-03-22 업데이트
+
+ - 21일 이슈 해결 진행 과정
+ 
+ - 새로운 이슈 발견 
+ 
+	- MissingReferenceException: 몬스터의 공격 코루틴에서 객체가 파괴된 후 여전히 해당 객체에 접근하려함.
+	  ㅡ> 스크립트가 파괴된 객체를 참조하지 않도록 수정해야함.
+	  
+	  Enemy Script의 Attack() 코루틴 동작에 null Check 추가 후 이슈 해결
+	  
+	-1 새로운 맵의 조형물(계단을 포함한)의 경우, Nav AI BAKE 오류
+	-2 조형물의 위로 올라가서 총 발사 시, Y축 ray 오류로 맞지 않음. 
+	-4 보스한테 몸통 박치기하면 튕겨나감;;
+	  
+	  
+	
+ - 맵 이동 로직
+ 
+	- MapManager 스크립트 생성
+	
+		GameMagager.stage 값을 받아와서 11>= 이상일 시, 2번째 맵으로 변경
+		
+		기존의 Enemy zone Group, Start Zone, Item Shop, Weapon Shop, Player, Enemy Zone Group을 MapManager 오브젝트 하위에 관리.
+		
+		MapManager에 MapManager 스크립트 적용 - 전체적인 위치 이동
+		세밀한 조정이 필요한 객체들에게 offset 값 조절 스크립트 ChildMapAdjuster 적용.
+		
+		Game Manager의 StageEnd()에 mapManager.StartNewRound(); 추가
+		
+		Work Flow: MapManager 이동 ㅡ> 자식 정밀 조정 ㅡ> Enemy zone 임시 활성화 후 조정
+	
+	new map position: 200, 0, -200
+	
+	추후 새로운 맵 개발 시, 확장성을 고려해 마이그레이션 고민중
+	
+2023-03-23 업데이트
+
+	- 22일 이슈 해결 과정
+		
+	 1.	(해결): Unity's NavMesh Components GitHub repository에서 NavMesh Components를 다운로드
+			  복잡한 구조물에 새로운 컴포넌트 추가: NavMeshSurface, NavMeshLink
+	
+	 2. (진행중)
+	 
+	 3. (해결):  각 패턴 로직 시작 전 로직 추가 rigid.velocity = Vector3.zero;
+										rigid.angularVelocity = Vector3.zero; 
+		
+2023-03-24 업데이트	
+
+	- 업데이트 예정 목록: 미니맵 추가
+		
+		 
+	
+	- 이슈
+	
+	2. (플레이어 해결, 몬스터 미해결):   Player 스크립트에 IsClimbingStairs() 함수 적용.
+								  2개의 레이캐스트를 쏘아 (발, 몸통) Stairs 태그를 확인하여 설정한 경사도(25)가 모두 맞으면 계단으로 판단함
+								  Move() 함수 내부에 계단일 경우 y축 값을 조정하여 계단을 오르게 설정함.
+								  
+								  https://mrbinggrae.tistory.com/120 Nav Agent를 사용하는 몬스터 계단 오르기 참고
+
+2023-03-27 업데이트
+
+	- 미니맵 추가
+		
+		Minamap 카메라 추가 후 Projection: orthographic, TargetTexture: Render Texture
+						    Canvas Raw Image: RenderTexture, Mnimap 스크립트 적용
+							Game Camera: Game Camera (transform)
+							Camera: minimapCamera
+							
+							Main카메라의 Vector3값중 x와 z의 값만 받아와서 Update로 갱신
+							
+	- 이슈
+	
+	1. 고도차에 따른 타격 이벤트: 진행중
+
+	3. (new)구조물위에서 점프 시 바닥을 인지하지 못하고 계속 떠있음: jump 애니메이션이 안끝남 ㅡ> 코드 수정 후 해결
+	
+2023-03-29 업데이트
+
+	3. 해결
+	
+2023-03-30 업데이트
+
+	1. 
+	
+	- 이슈발견: 적 처치 시, 카운트 값이 음수값을 가질 때가 있음.
+		
+			  원인 추정: 같은 타입의 에너미가 동시에 여러 개가 존재하고, 
+					  그 중 하나가 사망할 때 아직 해당 에너미 객체가 파괴되기 이전에 다른 에너미 객체가 이미 enemyCnt를 감소시켰을 경우.
+					  
+			  해결 방안: 
+						1. 카운트 음수 불가능 로직 (근본)
+						
+						2. 함수 호출부분에 lock을 걸어서 다른 스레드에서 해당 함수를 호출하지 못하도록 막음 (단편)
+						
+						  - Mathf.Max(manager.enemyCntD, 0); 를 통해 음수 제어함.
+	
+2023-03-31 공지
+
+	당분간 새로운 게임 개발을 위하여 업데이트 보류
+	
+	밸런스 패치는 알파테스트를 통하여 정보가 들어오면 할 예정
+
+	
+		
+	
+	
